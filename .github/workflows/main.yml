@@ -44,4 +44,7 @@ jobs:
         env:
           SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
           SURGE_DOMAIN: ${{ secrets.SURGE_DOMAIN }}
-        run: surge . "$SURGE_DOMAIN" --token "$SURGE_TOKEN"
+        run: |
+          SURGE_TOKEN_CLEAN="$(printf '%s' "$SURGE_TOKEN" | tr -d '\r\n')"
+          SURGE_DOMAIN_CLEAN="$(printf '%s' "$SURGE_DOMAIN" | tr -d '\r\n')"
+          surge . "$SURGE_DOMAIN_CLEAN" --token "$SURGE_TOKEN_CLEAN"
