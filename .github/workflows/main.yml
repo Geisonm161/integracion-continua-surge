@@ -1,0 +1,47 @@
+name: Deploy to Surge
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: surge-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Publish website
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Surge
+        run: npm install --global surge
+
+      - name: Validate deployment configuration
+        env:
+          SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
+          SURGE_DOMAIN: ${{ secrets.SURGE_DOMAIN }}
+        run: |
+          test -n "$SURGE_TOKEN" || { echo "Missing SURGE_TOKEN secret"; exit 1; }
+          test -n "$SURGE_DOMAIN" || { echo "Missing SURGE_DOMAIN secret"; exit 1; }
+
+      - name: Deploy to Surge
+        env:
+          SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
+          SURGE_DOMAIN: ${{ secrets.SURGE_DOMAIN }}
+        run: surge . "$SURGE_DOMAIN" --token "$SURGE_TOKEN"
